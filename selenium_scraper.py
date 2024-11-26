@@ -21,16 +21,19 @@ geckodriver_path = "/home/chase/Projects/Scraper/geckodriver"
 service = Service(geckodriver_path)
 
 # --------------------------------------------------------------
+# Choose path to write output to
+output_path = "/home/chase/Projects/Scraper/out"
+
+# --------------------------------------------------------------
 # Loop over urls like `https://www.oddsportal.com/american-football/usa/nfl/results/#/page/2/`
 # starting at 1 until the html contains this text
 # "Unfortunately, no matches can be displayed because there are no odds available from your selected bookmakers"
 for i in range(1, 100):
 
-    driver = webdriver.Firefox(service=service, options=options)
-
     # --------------------------------------------------------------
+    # Initialize a fresh instance of the FF browswer
     # Open a try block to catch any exceptions
-    # this try loop is open the entire time the browser is open
+    driver = webdriver.Firefox(service=service, options=options)
     try:
 
         # --------------------------------------------------------------
@@ -66,7 +69,7 @@ for i in range(1, 100):
     # --------------------------------------------------------------
     # write the html out to a versioned file
     # creates the file if it doesn't exist
-    with open(f"/home/chase/Projects/Scraper/{i}.html", "w") as f:
+    with open(f"{output_path}/{i}.html", "w") as f:
         f.write(htmlFull)
         print(f"HTML {i} successfully saved!")
 
@@ -83,17 +86,25 @@ for i in range(1, 100):
     inner_value_pattern = r">([^<]+)<"
 
     # --------------------------------------------------------------
-    # Loop over pairs of odds two at a time
-    # the winner and the loser odd of each game
-    for i in range(0, len(matches), 2):
+    # Determine winner and loser of each game
+    # prepare a row to be written out to CSV
+    rows = []
+    for j in range(0, len(matches), 2):
 
         # --------------------------------------------------------------
         # Luckily we can identify the winner by a unique string in its tag
         # once found, put the odds and which is the winner in a list and print it
-        pair = matches[i:i+2]
+        pair = matches[j:j+2]
         inner_values = [re.search(inner_value_pattern, p).group(1) for p in pair]
         w = "0" if ' gradient-green ' in pair[0] else "1"
         l = [inner_values[0], inner_values[1], w]
-        print(l)
+        rows.append(l)
+
+    # --------------------------------------------------------------
+    # Write out the rows to a CSV file
+    with open(f"{output_path}/odds.csv", "a") as f:
+        for row in rows:
+            f.write(",".join(row) + "\n")
+        print(f"Rows for {i} successfully saved!")
 
     driver.quit()
