@@ -23,6 +23,7 @@ service = Service(geckodriver_path)
 # --------------------------------------------------------------
 # Choose path to write output to
 output_path = "/home/chase/Projects/Scraper/out"
+save_htmls = False
 
 # --------------------------------------------------------------
 # Loop over urls like `https://www.oddsportal.com/american-football/usa/nfl/results/#/page/2/`
@@ -39,7 +40,8 @@ for i in range(1, 100):
         # --------------------------------------------------------------
         # Load a parameterized URL, wait for it to load,
         # then scroll up and down to yield the lazy-loaded content
-        url = f"https://www.oddsportal.com/american-football/usa/nfl/results/#/page/{i}/"
+        year = "nfl-2008-2009/" # use an empty string for the current season
+        url = f"https://www.oddsportal.com/american-football/usa/{year}results/#/page/{i}"
         print(f"Loading page {i} at {url}")
         driver.get(url)
         print(f"Waiting for page {i} to load, this will take 20 seconds")
@@ -66,12 +68,13 @@ for i in range(1, 100):
         print(f"Page {i} is empty")
         break
 
-    # --------------------------------------------------------------
-    # write the html out to a versioned file
-    # creates the file if it doesn't exist
-    with open(f"{output_path}/{i}.html", "w") as f:
-        f.write(htmlFull)
-        print(f"HTML {i} successfully saved!")
+    if save_htmls:
+        # --------------------------------------------------------------
+        # write the html out to a versioned file
+        # creates the file if it doesn't exist
+        with open(f"{output_path}/{i}.html", "w") as f:
+            f.write(htmlFull)
+            print(f"HTML {i} successfully saved!")
 
     # --------------------------------------------------------------
     # Use regex to extract the paragraph tags containing the odds
