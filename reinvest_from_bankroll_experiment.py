@@ -37,11 +37,11 @@ bankroll = initial_bankroll
 bankroll_history = []
 
 # Set experiment parameters
-dataset = 'odds_merged.csv'
-pick_type = 'favorite' # could be 'favorite' or 'underdog'. Any other value will default to 'random'
+dataset = 'odds_2021_2022.csv'
+pick_type = 'underdog' # could be 'favorite' or 'underdog'. Any other value will default to 'random'
 
-# Load the data in as integers
-df = pd.read_csv(f"/home/chase/Projects/Scraper/out/{dataset}")
+# Load the data in as inegers
+df = pd.read_csv(f"/home/chase/Projects/bcbabrich-sports-analytics/out/{dataset}")
 
 # Data looks like this:
 # away,home,winner
@@ -61,8 +61,9 @@ for index, row in df.iterrows():
     print(f"...")
     print(f"")
     print(f"row is {row.to_dict()}")
+    print(f"pick_type is {pick_type}")
 
-    if 'pick_type' == 'underdog':
+    if pick_type == 'underdog':
         # Determine the underdog for this game
         # Positive odds are the underdog, thus the use of max()
         odds = max(row['away'], row['home'])
