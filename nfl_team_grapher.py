@@ -44,13 +44,7 @@ NFLTeams = [
 # Initialize bankroll
 initial_bankroll = 100  # Starting amount
 
-# Set experiment parameters
-dataset = './out/NFLGamesStringified.csv'
-
-# Load the data
-df = pd.read_csv(dataset)
-
-# Data format:
+# Data looks like:
 # Away Team,Home Team,Away Odds,Home Odds,Winner,Date
 # "AFC","NFC",+114,-137,1,08 Feb 2009
 # "Pittsburgh Steelers","Arizona Cardinals",-244,+202,0,01 Feb 2009
@@ -58,15 +52,24 @@ df = pd.read_csv(dataset)
 # "Arizona Cardinals","Philadelphia Eagles",+149,-182,0,18 Jan 2009
 # "Pittsburgh Steelers","Los Angeles Chargers",-303,+243,0,11 Jan 2009
 # "New York Giants","Philadelphia Eagles",-222,+177,1,11 Jan 2009
-
-# Create a plot for each team
-plt.figure(figsize=(15, 10))
+df = pd.read_csv('./out/NFLGamesStringified.csv').astype({
+    'Away Team': 'string',
+    'Home Team': 'string',
+    'Away Odds': 'int',
+    'Home Odds': 'int',
+    'Date': 'datetime64[s]'
+}).sort_values(by='Date')
 
 for team in NFLTeams:
+
+    plt.figure(figsize=(15, 10))
+    plt.axhline(initial_bankroll, color='red', linestyle='--', label='Initial Bankroll')
+
     print(f"Processing team: {team}")
 
     bankroll = initial_bankroll
     bankroll_history = []
+    dates = []
 
     for index, row in df.iterrows():
 
@@ -85,32 +88,31 @@ for team in NFLTeams:
         bankroll += calculate_return(odds, bool(row['Winner']), bet_amount)
         
         # Record bankroll history
+        print(f"Bankroll is {bankroll}")
         bankroll_history.append(bankroll)
-        
-        # Stop if bankroll reaches $0
-        if bankroll <= 0:
-            print(f"Bankroll depleted for {team} after {index + 1} bets.")
-            break
+
+        # Record date
+        print(f"Date is {row['Date']}")
+        dates.append(row['Date'])
 
     # Plot bankroll history for the team
-    plt.plot(bankroll_history, label=team)
+    plt.plot(dates, bankroll_history)
 
-# Finalize plot
-plt.axhline(initial_bankroll, color='red', linestyle='--', label='Starting Bankroll')
-plt.xlabel('Number of Bets')
-plt.ylabel('Bankroll ($)')
-plt.title('Bankroll Over Time for All Teams')
-plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
-plt.tight_layout()
+    # Finalize plot
+    plt.xlabel('Date')
+    plt.ylabel('Bankroll ($)')
+    plt.title(f"Bankroll Over Time {team}")
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.tight_layout()
 
-# Ensure output directory exists
-output_dir = './out'
-os.makedirs(output_dir, exist_ok=True)
-output_path = os.path.join(output_dir, 'bankroll_history_all_teams.png')
+    # Ensure output directory exists
+    output_dir = './out/individual/'
+    os.makedirs(output_dir, exist_ok=True)
+    output_path = os.path.join(output_dir, f"{team}_bankroll_history.png")
+    print(f"Plotting for {team}")
 
-# Save the plot
-plt.savefig(output_path)
-print(f"Plot saved to {output_path}")
+    # Save the plot
+    plt.savefig(output_path)
+    print(f"Plot saved to {output_path}")
 
-plt.show()
-
+    bankroll_history = []
