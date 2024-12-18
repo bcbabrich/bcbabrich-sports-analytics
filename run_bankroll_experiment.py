@@ -52,7 +52,7 @@ initial_bankroll = 100  # Starting amount
 # "Arizona Cardinals","Philadelphia Eagles",+149,-182,0,18 Jan 2009
 # "Pittsburgh Steelers","Los Angeles Chargers",-303,+243,0,11 Jan 2009
 # "New York Giants","Philadelphia Eagles",-222,+177,1,11 Jan 2009
-df = pd.read_csv('./out/NFLGamesStringified.csv').astype({
+df = pd.read_csv('./out/ProcessedNFLGames.csv').astype({
     'Away Team': 'string',
     'Home Team': 'string',
     'Away Odds': 'int',
