@@ -60,10 +60,10 @@ df = pd.read_csv('./out/NFLGamesStringified.csv').astype({
     'Date': 'datetime64[s]'
 }).sort_values(by='Date')
 
-for team in NFLTeams:
+plt.figure(figsize=(15, 10))
+plt.axhline(initial_bankroll, color='red', linestyle='--', label='Initial Bankroll')
 
-    plt.figure(figsize=(15, 10))
-    plt.axhline(initial_bankroll, color='red', linestyle='--', label='Initial Bankroll')
+for team in NFLTeams:
 
     print(f"Processing team: {team}")
 
@@ -98,21 +98,18 @@ for team in NFLTeams:
     # Plot bankroll history for the team
     plt.plot(dates, bankroll_history)
 
-    # Finalize plot
-    plt.xlabel('Date')
-    plt.ylabel('Bankroll ($)')
-    plt.title(f"Bankroll Over Time {team}")
-    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
-    plt.tight_layout()
+# Finalize plot
+plt.xlabel('Date')
+plt.ylabel('Bankroll ($)')
+plt.title(f"Bankroll Over Time (All Teams)")
+plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+plt.tight_layout()
 
-    # Ensure output directory exists
-    output_dir = './out/individual/'
-    os.makedirs(output_dir, exist_ok=True)
-    output_path = os.path.join(output_dir, f"{team}_bankroll_history.png")
-    print(f"Plotting for {team}")
+# Ensure output directory exists
+output_dir = './out/individual/'
+os.makedirs(output_dir, exist_ok=True)
+output_path = os.path.join(output_dir, f"all_teams_bankroll_history.png")
+print(f"Saving plot to {output_path}")
 
-    # Save the plot
-    plt.savefig(output_path)
-    print(f"Plot saved to {output_path}")
-
-    bankroll_history = []
+# Save the plot
+plt.savefig(output_path)
