@@ -37,7 +37,7 @@ for i in range(1, 100):
 
             # --------------------------------------------------------------
             # Load a parameterized URL scroll up and down to yield the lazy-loaded content
-            year = "nfl-2008-2009/" # use an empty string for the current season
+            year = "nfl/" # use nfl/ for the current season
             print(f"Waiting for page {i} to load, this will take 4 seconds")
             time.sleep(4)
             url = f"https://www.oddsportal.com/american-football/usa/{year}results/#/page/{i}"
