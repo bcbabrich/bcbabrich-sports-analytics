@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import random
 import os
 from datetime import date
+import numpy as np
 
 # Function to calculate returns
 def calculate_return(odds, Winner, bet_amount):
@@ -32,15 +33,22 @@ def calculate_return(odds, Winner, bet_amount):
 
 # List of NFL teams
 NFLTeams = [
- "Carolina Panthers"
+    "Arizona Cardinals", "Atlanta Falcons", "Baltimore Ravens", "Buffalo Bills",
+    "Carolina Panthers", "Chicago Bears", "Cincinnati Bengals", "Cleveland Browns",
+    "Dallas Cowboys", "Denver Broncos", "Detroit Lions", "Green Bay Packers",
+    "Houston Texans", "Indianapolis Colts", "Jacksonville Jaguars", "Kansas City Chiefs",
+    "Las Vegas Raiders", "Los Angeles Chargers", "Los Angeles Rams", "Miami Dolphins",
+    "Minnesota Vikings", "New England Patriots", "New Orleans Saints", "New York Giants",
+    "New York Jets", "Philadelphia Eagles", "Pittsburgh Steelers", "San Francisco 49ers",
+    "Seattle Seahawks", "Tampa Bay Buccaneers", "Tennessee Titans", "Washington Commanders"
 ]
 
 # Initialize bankroll
 initial_bankroll = 100  # Starting amount
 
 # Set a range of dates to find local maxima in
-upperDate = pd.Timestamp(year=2015, month=2, day=1)
-lowerDate = pd.Timestamp(year=2014, month=8, day=3)
+upperDate = pd.Timestamp(year=2024, month=12, day=22)
+lowerDate = pd.Timestamp(year=2024, month=12, day=20)
 
 # Data looks like:
 # Away Team,Home Team,Away Odds,Home Odds,Winner,Date
@@ -68,25 +76,27 @@ for team in NFLTeams:
     print("+++")
 
     bankroll = initial_bankroll
-    bankroll_history = []
+    bankroll_history = np.array([])
     dates = []
+    prevbankroll = 0
+    localprofits = []
 
     for index, row in df.iterrows():
 
         print("...")
 
         # --------------------------------------------------------------
-        # Apply date filter and get the odds
+        # Apply date,team filter and get the odds
         date = row['Date']
         print(f"Date is {date}")
         if not (lowerDate < date and date < upperDate):
             print(f"Date is not in range {lowerDate} to {upperDate}")
             continue
         else:
-            print(f"Date is in range {lowerDate} to {upperDate}. Lenth of dates is {len(dates)}")
             if row['Away Team'] == team:
                 odds = int(row['Away Odds'])
             elif row['Home Team'] == team:
+                print(f"Date is in range {lowerDate} to {upperDate} and {team} played this game at home")
                 odds = int(row['Home Odds'])
             else:
                 continue
@@ -94,26 +104,44 @@ for team in NFLTeams:
             dates.append(date)
 
         # --------------------------------------------------------------
-        # Get 10 dollars every time and update the bankroll history
-        bankroll -= 10
-        bankroll += calculate_return(odds, bool(row['Winner']), 10)
+        # Bet 10 dollars every time and update the bankroll history
+        bet = 10
+        bankroll -= bet
+        betreturn = calculate_return(odds, bool(row['Winner']), bet)
+        bankroll += betreturn
         print(f"Bankroll is {bankroll}")
-        bankroll_history.append(bankroll)
+        bankroll_history = np.append(bankroll_history, [bankroll])
 
-    # Plot bankroll history for the team
-    plt.plot(dates, bankroll_history)
+        # --------------------------------------------------------------
+        # Current rate of change must be greater than zero to indicate a local profit
+        print(f"Prev bankroll is {prevbankroll}")
+        print(f"Bet return is {betreturn}")
+        curLocProf = 0 < prevbankroll and 0 < betreturn
+        print(f"Current local profit is {curLocProf}")
+        localprofits.append(curLocProf)
+        prevbankroll = betreturn
+
+    # --------------------------------------------------------------
+    # Use localprofits as a mask for the bankroll history and plot the graph
+    # Remember that a mask says "whether a value is valid or not"
+    # Therefore, apply the "green" mask to the inverse of the local profits
+    print(f"applying local profits mask, length of local profits is {len(localprofits)}")
+    winning_bankroll_history = np.ma.array(bankroll_history, mask=np.logical_not(localprofits))
+    losing_bankroll_history = np.ma.array(bankroll_history, mask=localprofits)
+    plt.plot(dates, winning_bankroll_history, 'og', dates, losing_bankroll_history, 'or')
 
 # Finalize plot
 plt.xlabel('Date')
 plt.ylabel('Bankroll ($)')
-plt.title(f"Bankroll over range {lowerDate} to {upperDate} for team '{team}'")
+plt.title(f"Bankroll over range {lowerDate} to {upperDate} for all teams")
 plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
 plt.tight_layout()
 
 # Ensure output directory exists
-output_dir = './out/individual/'
+output_dir = './out/'
 os.makedirs(output_dir, exist_ok=True)
-output_path = os.path.join(output_dir, f"{team}_over_{lowerDate}_{upperDate}.png")
+file_name = f"all_teams_over_{lowerDate}_{upperDate}_colorizes_wins_losses.png"
+output_path = os.path.join(output_dir, file_name)
 print(f"Saving plot to {output_path}")
 
 # Save the plot
